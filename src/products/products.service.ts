@@ -20,7 +20,6 @@ export class ProductsService extends PrismaClient implements OnModuleInit {
     return this.product.create({
       data: createProductDto
     });
-
   }
 
   async findAll(paginationDto: PaginationDto) {
@@ -59,13 +58,11 @@ export class ProductsService extends PrismaClient implements OnModuleInit {
     }
 
     return product;
-
   }
 
   async update(id: number, updateProductDto: UpdateProductDto) {
 
     const { id: __, ...data } = updateProductDto;
-
 
     await this.findOne(id);
 
@@ -73,17 +70,11 @@ export class ProductsService extends PrismaClient implements OnModuleInit {
       where: { id },
       data: data,
     });
-
-
   }
 
   async remove(id: number) {
 
     await this.findOne(id);
-
-    // return this.product.delete({
-    //   where: { id }
-    // });
 
     const product = await this.product.update({
       where: { id },
@@ -93,7 +84,24 @@ export class ProductsService extends PrismaClient implements OnModuleInit {
     });
 
     return product;
+  }
 
+  async validateProducts(ids: number[]) {
+    ids = Array.from(new Set(ids));
 
+    const products = await this.product.findMany({
+      where: {
+        id: { in: ids }
+      }
+    });
+
+    if (products.length !== ids.length) {
+      throw new RpcException({
+        message: 'One or more products not found',
+        status: HttpStatus.BAD_REQUEST
+      });
+    }
+
+    return products;
   }
 }
